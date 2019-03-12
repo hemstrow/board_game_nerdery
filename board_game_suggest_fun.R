@@ -1,6 +1,6 @@
 suggest_games <- function(bg.dat, players, novelty = 0.5, time_since_played = 0.5, bgg.score = 0.5, time = NULL, n.players = "play_all", complexity = NULL){
   range.scale <- function(x, n.max){
-    x <- (x-min(x))/(max(x)-min(x)) * (n.max)
+    x <- (x-min(x, na.rm = T))/(max(x, na.rm = T)-min(x, na.rm = T)) * (n.max)
     return(x)
   }
 
@@ -48,17 +48,31 @@ suggest_games <- function(bg.dat, players, novelty = 0.5, time_since_played = 0.
   scores <- matrix(as.numeric(scores), nrow(scores))
   colnames(scores) <- colnames(bg.dat)[match.col]
   
+  # standardize player scores so that everyone is equally weighted.
+  scores <- apply(scores, 2, function(x){x/mean(x, na.rm = T)}) # scale for mean
+  
   # get means score per game as new weight
   means <- rowMeans(scores, na.rm = T)
   means[is.nan(means)] <- mean(means, na.rm = T)
   m_score <- means
+  o_m_score <- m_score # save for later
   out <- as.data.frame(cbind(game = bg.dat$X1, player_score = means), stringsAsFactors = F)
+  
+  ############################## bgg.score ###########
+  if(!is.null(bgg.score)){
+    bgs <- as.numeric(bg.dat$BGG)
+    bgs[is.na(bgs)] <- mean(bgs, na.rm = T)
+    bgs <- bgs/mean(bgs)
+    m_score <- m_score + bgs*bgg.score
+    o_m_score <- m_score
+    out <- cbind(out, bgg = bg.dat$BGG)
+  }
   
   ############################## weight by novelty ###########
   if(!is.null(novelty)){
     nov <- rowSums(ifelse(is.na(bg.dat[,match.col]), 1, 0))
     out <- cbind(out, novelty = nov)
-    nov <- range.scale(nov, 10)
+    nov <- range.scale(nov, max(o_m_score, na.rm = T)) # scale novelty contribution relative to game mean scores.
     m_score <- m_score + nov*novelty
   }
   
@@ -68,16 +82,8 @@ suggest_games <- function(bg.dat, players, novelty = 0.5, time_since_played = 0.
     tsp[is.na(tsp)] <- sort(tsp)[1] # NA is set to the oldest date.
     tsp <- Sys.Date() - tsp
     out <- cbind(out, time_since_played = tsp)
-    tsp <- range.scale(as.numeric(tsp), 10)
+    tsp <- range.scale(as.numeric(tsp), max(o_m_score, na.rm = T))
     m_score <- m_score + tsp*time_since_played
-  }
-  
-  ############################## bgg.score ###########
-  if(!is.null(bgg.score)){
-    bgs <- as.numeric(bg.dat$BGG)
-    bgs[is.na(bgs)] <- mean(bgs, na.rm = T)
-    m_score <- m_score + bgs*bgg.score
-    out <- cbind(out, bgg = bg.dat$BGG)
   }
   
   ############################## final score ##########
