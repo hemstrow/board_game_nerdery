@@ -5,11 +5,12 @@ library(ggplot2); library(reshape2); library(GGally); library(googlesheets); lib
 bg <- as.data.frame(gs_read(ss=gs_title("Boardgames+others"), ws = "Sheet1"), stringsAsFactors = F)
 
 # format
-bg[,6:ncol(bg)] <- matrix(as.numeric(unlist(bg[,6:ncol(bg)])), nrow = nrow(bg))
+player.cols <- (which(colnames(bg) == "Last Played") + 1):(which(colnames(bg) == "BGG") - 1)
+bg[,player.cols] <- matrix(as.numeric(unlist(bg[,player.cols])), nrow = nrow(bg))
 colnames(bg)[1] <- "name"
 
 # get a melted data frame
-bgm <- melt(bg, id.vars = colnames(bg)[c(1:5)])
+bgm <- melt(bg, id.vars = colnames(bg)[c(1:(player.cols[1] - 1))])
 colnames(bgm)[(ncol(bgm)-1):ncol(bgm)]<- c("player", "rating")
 bgm$rating <- as.numeric(bgm$rating)
 
@@ -20,7 +21,7 @@ ggplot(bgm, aes(y = rating, x = Complexity)) + geom_point() + theme_bw() + facet
 summary(glm(rating ~ Complexity + player + player:Complexity, data = bgm))
 
 # correlation plot
-ggpairs(bg[,6:(ncol(bg)-2)]) + theme_bw()
+ggpairs(bg[,player.cols]) + theme_bw()
 
 # plot o' games
 ggplot(bgm, aes(y = rating, x = player, color = player)) + geom_point() + facet_wrap(~name) + theme_bw() + 

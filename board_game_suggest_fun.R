@@ -47,7 +47,6 @@ suggest_games <- function(bg.dat, players, novelty = 0.5, time_since_played = 0.
   scores[scores == "no"] <- 1
   scores <- matrix(as.numeric(scores), nrow(scores))
   colnames(scores) <- colnames(bg.dat)[match.col]
-  
   # standardize player scores so that everyone is equally weighted.
   scores <- apply(scores, 2, function(x){x/mean(x, na.rm = T)}) # scale for mean
   
