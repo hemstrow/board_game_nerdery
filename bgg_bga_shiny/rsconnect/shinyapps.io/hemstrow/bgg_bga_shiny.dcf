@@ -1,0 +1,11 @@
+name: bgg_bga_shiny
+title:
+username:
+account: hemstrow
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 4655268
+bundleId: 5034236
+url: https://hemstrow.shinyapps.io/bgg_bga_shiny/
+when: 1631671419.33438
+lastSyncTime: 1631671419.33438
