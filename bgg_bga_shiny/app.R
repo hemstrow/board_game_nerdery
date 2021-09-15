@@ -8,7 +8,10 @@ ui <- fluidPage(
   sliderInput("playernumber", value = 4, label = "Number of Players", min = 1, max = 10),
   actionButton("go", "Find Games"),
   
-  dataTableOutput("table")
+  dataTableOutput("table"),
+  uiOutput("issues")
+  
+  
 )
 
 
@@ -20,6 +23,10 @@ server <- function(input, output, session) {
   output$table <- renderDataTable({
     data.table::as.data.table(game_tab())
   }, escape = FALSE)
+  
+  output$issues <- renderUI({
+    tagList("Some games available on BGA may not appear due to mismatched names. This and other issues can be reported to the app github", a("Issues Page.", href="https://github.com/hemstrow/board_game_nerdery/issues"))
+  })
 }
 shinyApp(ui, server)
 
