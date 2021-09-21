@@ -8,7 +8,7 @@ ui <- fluidPage(
   sliderInput("playernumber", value = 4, label = "Number of Players", min = 1, max = 10),
   actionButton("go", "Find Games"),
   
-  dataTableOutput("table"),
+  DT::dataTableOutput("table"),
   uiOutput("issues")
   
   
@@ -20,9 +20,9 @@ server <- function(input, output, session) {
     hit_games[which(input$playernumber >= hit_games$MinPlayers & input$playernumber <= hit_games$MaxPlayers),]
   })
   
-  output$table <- renderDataTable({
-    data.table::as.data.table(game_tab())
-  }, escape = FALSE)
+  output$table <- DT::renderDataTable({
+    DT::datatable(game_tab(), class = 'cell-border stripe', escape = FALSE)
+  })
   
   output$issues <- renderUI({
     tagList("Some games available on BGA may not appear due to mismatched names. This and other issues can be reported to the app github", a("Issues Page.", href="https://github.com/hemstrow/board_game_nerdery/issues"))
